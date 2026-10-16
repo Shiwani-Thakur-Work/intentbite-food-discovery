@@ -1,6 +1,7 @@
 /**
- * Results Grid Component
- * Displays ranked dish cards, match percentage meters, and "Why This Matched" breakdowns.
+ * Results Grid Component (Indian Dining Focus)
+ * Displays ranked dish cards with iconic Veg/Non-Veg indicators, Rupee (₹) pricing,
+ * and "Why This Matched" verification badges.
  */
 
 import { store } from "../utils/constraintStore.js";
@@ -14,12 +15,12 @@ export function renderResultsGrid(container) {
       container.innerHTML = `
         <section class="results-section">
           <div style="text-align: center; padding: 4rem 1rem;">
-            <div style="font-size: 2.5rem; animation: spin 1s infinite linear;">🍲</div>
-            <h3 style="font-family: var(--font-display); margin-top: 1rem; color: var(--text-primary);">
-              Verifying dietary safety & ranking against constraints...
+            <div style="font-size: 2.8rem; animation: spin 1s infinite linear;">🥘</div>
+            <h3 style="font-family: var(--font-display); margin-top: 1rem; color: var(--text-primary); font-size: 1.4rem;">
+              Verifying dietary safety & ranking against your constraints...
             </h3>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">
-              Evaluating budget caps, allergens, and speed requirements
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.35rem;">
+              Checking Pure Veg/Jain certifications, ₹ budget caps, and delivery speed
             </p>
           </div>
         </section>
@@ -43,10 +44,10 @@ export function renderResultsGrid(container) {
 
         <div class="results-header">
           <div class="results-count">
-            Found <span>${results.length}</span> verified options
-            ${state.rawQuery ? `<span style="font-size: 0.85rem; font-weight: normal; color: var(--text-muted); margin-left: 0.5rem;">for "${escapeHtml(state.rawQuery)}"</span>` : ""}
+            Found <span>${results.length}</span> verified Indian meals
+            ${state.rawQuery ? `<span style="font-size: 0.9rem; font-weight: normal; color: var(--text-muted); margin-left: 0.6rem;">for "${escapeHtml(state.rawQuery)}"</span>` : ""}
           </div>
-          <div style="font-size: 0.85rem; color: var(--text-muted);">
+          <div style="font-size: 0.88rem; color: var(--text-muted);">
             Ranked by Constraint Match Score
           </div>
         </div>
@@ -72,8 +73,8 @@ export function renderResultsGrid(container) {
 
         // Micro-confetti burst
         confetti({
-          particleCount: 25,
-          spread: 45,
+          particleCount: 28,
+          spread: 48,
           origin: { y: 0.8 }
         });
       });
@@ -98,13 +99,21 @@ function renderDishCard(item) {
           <span>🎯</span>
           <span>${score}% Match</span>
         </span>
-        <span class="dish-price-pill">$${dish.price.toFixed(2)}</span>
+        <span class="dish-price-pill"><span class="currency">₹</span>${dish.price}</span>
       </div>
 
       <div class="dish-body">
         <div class="dish-header">
-          <div class="dish-restaurant">${escapeHtml(dish.restaurantName)} • ${escapeHtml(dish.cuisine)}</div>
-          <h3 class="dish-name">${escapeHtml(dish.name)}</h3>
+          <div class="dish-restaurant">
+            <span>${escapeHtml(dish.restaurantName)}</span>
+            <span>•</span>
+            <span>${escapeHtml(dish.locality)}</span>
+          </div>
+
+          <div class="dish-name-wrapper">
+            <span class="food-type-badge ${dish.foodType}" title="${dish.foodType === 'veg' ? 'Pure Vegetarian' : 'Non-Vegetarian'}"></span>
+            <h3 class="dish-name">${escapeHtml(dish.name)}</h3>
+          </div>
         </div>
 
         <p class="dish-desc">${escapeHtml(dish.description)}</p>
@@ -129,8 +138,8 @@ function renderDishCard(item) {
           <button class="btn-card-primary btn-view-details">
             View Details
           </button>
-          <button class="btn-card-primary btn-add-bag" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.35);">
-            + Add to Bag
+          <button class="btn-card-primary btn-add-bag" style="background: rgba(255, 107, 53, 0.16); color: #fed7aa; border-color: rgba(255, 107, 53, 0.38);">
+            + Add to Order
           </button>
         </div>
       </div>

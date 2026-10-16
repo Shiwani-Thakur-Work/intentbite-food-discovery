@@ -1,6 +1,7 @@
 /**
- * Explainability Generator: Builds transparent "Why This Matched" breakdowns
- * for each recommended dish.
+ * Explainability Generator for Indian Food Discovery
+ * Formats transparent "Why This Matched" badges with Indian Rupee (₹) pricing
+ * and authentic Indian dietary verifications.
  */
 
 export function generateExplanation(dish, constraints, matchScore, isHardSatisfied = true, compromiseNote = null) {
@@ -11,7 +12,7 @@ export function generateExplanation(dish, constraints, matchScore, isHardSatisfi
       matchPercentage: matchScore,
       summary: "Curated popular option",
       badges: [
-        { label: `$${dish.price.toFixed(2)}`, type: "neutral", icon: "tag" },
+        { label: `₹${dish.price}`, type: "neutral", icon: "tag" },
         { label: `⭐ ${dish.rating}`, type: "neutral", icon: "star" },
         { label: `${dish.deliveryTimeMax}m delivery`, type: "neutral", icon: "clock" }
       ],
@@ -21,61 +22,93 @@ export function generateExplanation(dish, constraints, matchScore, isHardSatisfi
 
   const { hard, soft } = constraints;
 
-  // 1. Budget Verification Badge
+  // 1. Budget Verification Badge in ₹
   if (hard.maxBudget != null) {
     if (dish.price <= hard.maxBudget) {
       const diff = hard.maxBudget - dish.price;
       badges.push({
-        label: diff >= 2 
-          ? `$${dish.price.toFixed(2)} ($${diff.toFixed(2)} under $${hard.maxBudget.toFixed(2)} cap)`
-          : `$${dish.price.toFixed(2)} (Within $${hard.maxBudget.toFixed(2)} budget)`,
+        label: diff >= 40 
+          ? `₹${dish.price} (₹${diff} under ₹${hard.maxBudget} cap)`
+          : `₹${dish.price} (Within ₹${hard.maxBudget} budget)`,
         type: "success",
         icon: "check"
       });
     } else {
       badges.push({
-        label: `$${dish.price.toFixed(2)} (+$${(dish.price - hard.maxBudget).toFixed(2)} over budget)`,
+        label: `₹${dish.price} (+₹${dish.price - hard.maxBudget} over budget)`,
         type: "warning",
         icon: "alert"
       });
     }
   } else {
     badges.push({
-      label: `$${dish.price.toFixed(2)}`,
+      label: `₹${dish.price}`,
       type: "neutral",
       icon: "tag"
     });
   }
 
-  // 2. Dietary Certification Badges
-  if (hard.dietaryRestrictions && hard.dietaryRestrictions.length > 0) {
-    const satisfiedDiets = hard.dietaryRestrictions.filter(d => dish.dietary.includes(d));
-    if (satisfiedDiets.length > 0) {
+  // 2. Pure Veg / Non-Veg Verification
+  if (hard.foodTypeRequired === "veg" || (hard.dietaryRestrictions && hard.dietaryRestrictions.includes("vegetarian"))) {
+    if (dish.foodType === "veg") {
       badges.push({
-        label: `Certified ${satisfiedDiets.map(d => d.replace("_", " ")).join(" & ")}`,
+        label: "Certified Pure Veg",
+        type: "success",
+        icon: "leaf"
+      });
+    }
+  }
+
+  // 3. Jain Verification
+  if (hard.dietaryRestrictions && hard.dietaryRestrictions.includes("jain")) {
+    if (dish.dietary.includes("jain")) {
+      badges.push({
+        label: "Jain Certified (No Onion/Garlic)",
         type: "success",
         icon: "shield-check"
       });
     }
   }
 
-  // 3. Allergen Safety Badges
+  // 4. Halal Verification
+  if (hard.dietaryRestrictions && hard.dietaryRestrictions.includes("halal")) {
+    if (dish.dietary.includes("halal")) {
+      badges.push({
+        label: "100% Halal Certified",
+        type: "success",
+        icon: "shield-check"
+      });
+    }
+  }
+
+  // 5. Gluten-Free Verification
+  if (hard.dietaryRestrictions && hard.dietaryRestrictions.includes("gluten_free")) {
+    if (dish.dietary.includes("gluten_free")) {
+      badges.push({
+        label: "Gluten-Free (No Maida)",
+        type: "success",
+        icon: "shield-check"
+      });
+    }
+  }
+
+  // 6. Allergen Safety (e.g. Dairy / Ghee / Nuts)
   if (hard.excludedAllergens && hard.excludedAllergens.length > 0) {
     const safeAllergens = hard.excludedAllergens.filter(a => !dish.allergens.includes(a));
     if (safeAllergens.length > 0) {
       badges.push({
-        label: `Safe: No ${safeAllergens.join(", ")}`,
+        label: `Free of ${safeAllergens.join(", ")}`,
         type: "success",
         icon: "shield"
       });
     }
   }
 
-  // 4. Delivery Speed Badge
+  // 7. Delivery Speed Badge
   if (soft.targetDeliveryMaxMinutes != null) {
     if (dish.deliveryTimeMax <= soft.targetDeliveryMaxMinutes) {
       badges.push({
-        label: `${dish.deliveryTimeMax}m delivery (Target < ${soft.targetDeliveryMaxMinutes}m)`,
+        label: `${dish.deliveryTimeMax}m (Target < ${soft.targetDeliveryMaxMinutes}m)`,
         type: "success",
         icon: "clock"
       });
@@ -88,7 +121,7 @@ export function generateExplanation(dish, constraints, matchScore, isHardSatisfi
     }
   }
 
-  // 5. Cravings & Macro Badges
+  // 8. Cravings & High Protein
   if (soft.cravings && soft.cravings.length > 0) {
     const matchedCravings = soft.cravings.filter(c => 
       dish.tags.includes(c) || dish.name.toLowerCase().includes(c)
@@ -105,16 +138,15 @@ export function generateExplanation(dish, constraints, matchScore, isHardSatisfi
     }
   }
 
-  // 6. Rating Badge
-  if (dish.rating >= 4.8) {
+  // 9. Spice Level
+  if (dish.spiceLevel >= 2) {
     badges.push({
-      label: `Top Rated (${dish.rating}★)`,
+      label: dish.spiceLevel === 3 ? "Teekha (Spicy 🌶️🌶️)" : "Medium Spiced 🌶️",
       type: "highlight",
-      icon: "star"
+      icon: "fire"
     });
   }
 
-  // Summary headline
   let summary = "Satisfies all mandatory search constraints.";
   if (!isHardSatisfied) {
     summary = compromiseNote || "Partial match with relaxed parameters.";

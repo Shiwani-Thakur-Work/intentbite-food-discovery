@@ -1,6 +1,6 @@
 /**
- * Constraint Gating, Scoring & Ranking Engine
- * Enforces hard constraints with 100% fidelity and scores soft preferences.
+ * Constraint Gating, Scoring & Ranking Engine for Indian Food
+ * Strictly enforces hard constraints in Indian Rupees (₹) and Indian dietary requirements.
  */
 
 import { FOOD_ITEMS } from "../data/foodDataset.js";
@@ -31,11 +31,17 @@ export function evaluateAndRankDishes(constraints, dishDataset = FOOD_ITEMS) {
     let satisfiesHard = true;
     const failureReasons = [];
 
-    // Check Budget
+    // Check Food Type (Pure Veg vs Non-Veg)
+    if (hard.foodTypeRequired === "veg" && dish.foodType !== "veg") {
+      satisfiesHard = false;
+      failureReasons.push("Not Pure Vegetarian");
+    }
+
+    // Check Budget in Indian Rupees (₹)
     if (hard.maxBudget != null && hard.maxBudget > 0) {
       if (dish.price > hard.maxBudget) {
         satisfiesHard = false;
-        failureReasons.push(`Price ($${dish.price.toFixed(2)}) exceeds max budget ($${hard.maxBudget.toFixed(2)})`);
+        failureReasons.push(`Price (₹${dish.price}) exceeds max budget (₹${hard.maxBudget})`);
       }
     }
 
@@ -66,7 +72,7 @@ export function evaluateAndRankDishes(constraints, dishDataset = FOOD_ITEMS) {
     }
   }
 
-  // 2. Normal Branch: If we have items that satisfy all hard constraints
+  // 2. Normal Branch: If items passed hard constraints
   if (passedItems.length > 0) {
     const scoredResults = passedItems.map(dish => {
       const { score, subScores } = calculateScore(dish, constraints);
@@ -93,7 +99,6 @@ export function evaluateAndRankDishes(constraints, dishDataset = FOOD_ITEMS) {
   }
 
   // 3. Fallback Branch: 0 items passed hard constraints
-  // Identify the most restrictive constraint to relax (typically budget or strict time)
   return generateRelaxedFallback(constraints, dishDataset, rejectedItems);
 }
 
@@ -105,8 +110,9 @@ function calculateScore(dish, constraints) {
   // Cuisine match (+30 max)
   if (soft.cuisines && soft.cuisines.length > 0) {
     const matchedCuisine = soft.cuisines.some(c => 
-      dish.cuisine.toLowerCase() === c.toLowerCase() ||
-      dish.tags.some(t => t.toLowerCase() === c.toLowerCase())
+      dish.cuisine.toLowerCase().includes(c.toLowerCase()) ||
+      c.toLowerCase().includes(dish.cuisine.toLowerCase()) ||
+      dish.tags.some(t => t.toLowerCase().includes(c.toLowerCase()))
     );
     if (matchedCuisine) {
       score += 25;
@@ -114,7 +120,7 @@ function calculateScore(dish, constraints) {
     }
   }
 
-  // Cravings match (+20 per matched craving tag, max 30)
+  // Cravings match (+15 per matched craving tag, max 30)
   if (soft.cravings && soft.cravings.length > 0) {
     let cravingPoints = 0;
     for (const craving of soft.cravings) {
@@ -127,7 +133,7 @@ function calculateScore(dish, constraints) {
     subScores.cravings = cappedCraving;
   }
 
-  // Delivery Speed (+20 max)
+  // Delivery Speed (+15 max)
   if (soft.targetDeliveryMaxMinutes != null && soft.targetDeliveryMaxMinutes > 0) {
     if (dish.deliveryTimeMax <= soft.targetDeliveryMaxMinutes) {
       score += 15;
@@ -150,7 +156,7 @@ function calculateScore(dish, constraints) {
   // Budget Headroom (+10 max if comfortably under budget)
   if (hard.maxBudget != null && hard.maxBudget > 0) {
     const savings = hard.maxBudget - dish.price;
-    if (savings >= 3) {
+    if (savings >= 50) {
       score += 8;
       subScores.budgetSavings = 8;
     }
@@ -172,14 +178,16 @@ function calculateScore(dish, constraints) {
 function generateRelaxedFallback(constraints, dishDataset, rejectedItems) {
   const { hard, soft } = constraints;
 
-  // Strategy A: Relax budget by +25%
-  let relaxedBudget = hard.maxBudget ? hard.maxBudget * 1.35 : null;
+  // Relax budget by +₹70 to +₹150
   let relaxedResults = [];
 
   for (const item of rejectedItems) {
     const dish = item.dish;
-    // Check if diet and allergens pass, but price was the only issue
     let passesDietAndAllergen = true;
+
+    if (hard.foodTypeRequired === "veg" && dish.foodType !== "veg") {
+      passesDietAndAllergen = false;
+    }
     if (hard.dietaryRestrictions && hard.dietaryRestrictions.length > 0) {
       if (!hard.dietaryRestrictions.every(d => dish.dietary.includes(d))) {
         passesDietAndAllergen = false;
@@ -198,8 +206,8 @@ function generateRelaxedFallback(constraints, dishDataset, rejectedItems) {
         score: Math.max(50, score - 15),
         isHardSatisfied: false,
         isFallback: true,
-        relaxationReason: `Price $${dish.price.toFixed(2)} is slightly above your $${hard.maxBudget?.toFixed(2)} budget, but respects all dietary preferences.`,
-        explanation: generateExplanation(dish, constraints, Math.max(50, score - 15), false, `Exceeds budget ($${dish.price.toFixed(2)} vs $${hard.maxBudget?.toFixed(2)})`)
+        relaxationReason: `Price ₹${dish.price} is slightly above your ₹${hard.maxBudget} budget, but respects 100% of your dietary requirements.`,
+        explanation: generateExplanation(dish, constraints, Math.max(50, score - 15), false, `Exceeds budget (₹${dish.price} vs ₹${hard.maxBudget})`)
       });
     }
   }
@@ -209,20 +217,20 @@ function generateRelaxedFallback(constraints, dishDataset, rejectedItems) {
     return {
       results: relaxedResults,
       isFallback: true,
-      relaxationMessage: `Zero exact matches under $${hard.maxBudget?.toFixed(2)}. We relaxed the budget to show ${relaxedResults.length} options that still satisfy 100% of your dietary requirements.`,
+      relaxationMessage: `Zero exact matches under ₹${hard.maxBudget}. We relaxed the budget to show ${relaxedResults.length} options that still satisfy 100% of your dietary requirements.`,
       totalMatched: relaxedResults.length,
       rejectedCount: rejectedItems.length
     };
   }
 
-  // Strategy B: General nearest match
+  // General nearest matches
   const generalMatches = dishDataset.slice(0, 4).map(dish => ({
     dish,
     score: 60,
     isHardSatisfied: false,
     isFallback: true,
     relaxationReason: "Closest alternative available in the curated dataset.",
-    explanation: generateExplanation(dish, constraints, 60, false, "Close general alternative")
+    explanation: generateExplanation(dish, constraints, 60, false, "Close regional alternative")
   }));
 
   return {

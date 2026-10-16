@@ -1,5 +1,5 @@
 /**
- * Interactive Constraint Chips Component
+ * Interactive Constraint Chips Component (Indian Context)
  * Allows users to inspect, edit, toggle strictness (Hard vs Soft), and remove
  * misunderstood parameters with one click.
  */
@@ -19,17 +19,17 @@ export function renderConstraintChips(container) {
 
     const chips = [];
 
-    // 1. Budget Chip
+    // 1. Budget Chip in Indian Rupees (₹)
     if (hard.maxBudget != null) {
       chips.push({
         id: "chip-budget",
-        label: `Max Budget: $${hard.maxBudget.toFixed(2)}${hard.budgetScope === "per_person" ? " / person" : ""}`,
+        label: `Max Budget: ₹${hard.maxBudget}${hard.budgetScope === "per_person" ? " / person" : ""}`,
         type: "hard",
-        icon: "🔒",
+        icon: "💰",
         tag: "Hard Gate",
         onRemove: () => store.removeConstraint("hard", "maxBudget"),
         onEdit: () => {
-          const newBudget = prompt("Update maximum budget ($):", hard.maxBudget);
+          const newBudget = prompt("Update maximum budget (₹):", hard.maxBudget);
           if (newBudget && !isNaN(parseFloat(newBudget))) {
             store.updateConstraint("hard", "maxBudget", parseFloat(newBudget));
           }
@@ -37,7 +37,28 @@ export function renderConstraintChips(container) {
       });
     }
 
-    // 2. Group Size Chip
+    // 2. Pure Veg / Food Type Gating
+    if (hard.foodTypeRequired === "veg") {
+      chips.push({
+        id: "chip-pure-veg",
+        label: "Pure Veg (Shakahari)",
+        type: "hard",
+        icon: "🟢",
+        tag: "Strict Gate",
+        onRemove: () => store.updateConstraint("hard", "foodTypeRequired", null)
+      });
+    } else if (hard.foodTypeRequired === "non_veg") {
+      chips.push({
+        id: "chip-non-veg",
+        label: "Non-Veg",
+        type: "hard",
+        icon: "🔴",
+        tag: "Preference",
+        onRemove: () => store.updateConstraint("hard", "foodTypeRequired", null)
+      });
+    }
+
+    // 3. Group Size Chip
     if (hard.groupSize && hard.groupSize > 1) {
       chips.push({
         id: "chip-group",
@@ -55,14 +76,20 @@ export function renderConstraintChips(container) {
       });
     }
 
-    // 3. Dietary Restrictions (Hard)
+    // 4. Dietary Restrictions (Hard)
     if (hard.dietaryRestrictions) {
       hard.dietaryRestrictions.forEach(diet => {
+        let label = `Diet: ${diet.replace("_", " ")}`;
+        if (diet === "jain") label = "Jain (No Onion, No Garlic)";
+        else if (diet === "vegetarian") label = "Vegetarian";
+        else if (diet === "halal") label = "100% Halal";
+        else if (diet === "gluten_free") label = "Gluten-Free (No Maida)";
+
         chips.push({
           id: `chip-diet-${diet}`,
-          label: `Diet: ${diet.replace("_", " ")}`,
+          label,
           type: "hard",
-          icon: "🌱",
+          icon: "🛡️",
           tag: "Hard Gate",
           onRemove: () => store.removeConstraint("hard", "dietaryRestrictions", diet),
           onToggleStrictness: () => store.toggleStrictness("dietary", diet)
@@ -70,21 +97,23 @@ export function renderConstraintChips(container) {
       });
     }
 
-    // 4. Excluded Allergens (Hard)
+    // 5. Excluded Allergens (Hard)
     if (hard.excludedAllergens) {
       hard.excludedAllergens.forEach(allergen => {
+        let label = `No ${allergen}`;
+        if (allergen === "dairy") label = "No Dairy / Ghee / Butter";
         chips.push({
           id: `chip-allergen-${allergen}`,
-          label: `No ${allergen}`,
+          label,
           type: "hard",
-          icon: "🛡️",
+          icon: "🚫",
           tag: "Strict Safe",
           onRemove: () => store.removeConstraint("hard", "excludedAllergens", allergen)
         });
       });
     }
 
-    // 5. Cuisines (Soft)
+    // 6. Regional Cuisines (Soft)
     if (soft.cuisines) {
       soft.cuisines.forEach(cuisine => {
         chips.push({
@@ -92,13 +121,13 @@ export function renderConstraintChips(container) {
           label: `Cuisine: ${cuisine}`,
           type: "soft",
           icon: "🍽️",
-          tag: "Preference",
+          tag: "Cuisine",
           onRemove: () => store.removeConstraint("soft", "cuisines", cuisine)
         });
       });
     }
 
-    // 6. Delivery Speed (Soft)
+    // 7. Delivery Speed (Soft)
     if (soft.targetDeliveryMaxMinutes != null) {
       chips.push({
         id: "chip-speed",
@@ -116,7 +145,7 @@ export function renderConstraintChips(container) {
       });
     }
 
-    // 7. Cravings (Soft)
+    // 8. Cravings (Soft)
     if (soft.cravings) {
       soft.cravings.forEach(craving => {
         chips.push({
@@ -136,27 +165,29 @@ export function renderConstraintChips(container) {
           <div class="toolbar-title">
             <span>⚙️</span>
             <span>Extracted Constraints (${chips.length})</span>
-            <span style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted); margin-left: 0.5rem;">
-              Click chip to edit • Click ✕ to remove
+            <span style="font-size: 0.78rem; font-weight: normal; color: var(--text-muted); margin-left: 0.5rem;">
+              Click chip to edit value • Click ✕ to remove
             </span>
           </div>
 
-          <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <div style="display: flex; gap: 0.6rem; align-items: center;">
             <select id="quick-add-constraint" class="btn-add-filter" style="outline: none;">
               <option value="">+ Add Constraint...</option>
-              <option value="vegan">Add: Vegan (Diet)</option>
-              <option value="gluten_free">Add: Gluten-Free (Diet)</option>
-              <option value="halal">Add: Halal (Diet)</option>
-              <option value="no_dairy">Add: No Dairy (Allergen)</option>
-              <option value="no_nuts">Add: No Nuts (Allergen)</option>
-              <option value="under_15">Add: Budget ≤ $15</option>
-              <option value="under_20">Add: Budget ≤ $20</option>
+              <option value="pure_veg">Add: Pure Veg (Shakahari)</option>
+              <option value="jain">Add: Jain Certified (No Onion/Garlic)</option>
+              <option value="halal">Add: 100% Halal</option>
+              <option value="no_dairy">Add: No Dairy / Ghee</option>
+              <option value="no_nuts">Add: No Peanuts / Tree Nuts</option>
+              <option value="under_150">Add: Budget ≤ ₹150</option>
+              <option value="under_300">Add: Budget ≤ ₹300</option>
+              <option value="under_500">Add: Budget ≤ ₹500</option>
               <option value="speed_25">Add: Speed < 25 mins</option>
-              <option value="high_protein">Add: High Protein</option>
-              <option value="spicy">Add: Spicy</option>
+              <option value="biryani">Add: Biryani Craving</option>
+              <option value="paneer">Add: Paneer Craving</option>
+              <option value="spicy">Add: Teekha / Spicy</option>
             </select>
 
-            <button class="btn btn-glass" id="btn-reset-filters" style="padding: 0.35rem 0.75rem; font-size: 0.78rem;">
+            <button class="btn btn-glass" id="btn-reset-filters" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">
               Reset All
             </button>
           </div>
@@ -200,10 +231,18 @@ export function renderConstraintChips(container) {
       const val = e.target.value;
       if (!val) return;
 
-      if (val === "vegan" || val === "gluten_free" || val === "halal") {
+      if (val === "pure_veg") {
+        store.updateConstraint("hard", "foodTypeRequired", "veg");
+      } else if (val === "jain") {
         const current = hard.dietaryRestrictions || [];
-        if (!current.includes(val)) {
-          store.updateConstraint("hard", "dietaryRestrictions", [...current, val]);
+        if (!current.includes("jain")) {
+          store.updateConstraint("hard", "dietaryRestrictions", [...current, "jain"]);
+          store.updateConstraint("hard", "foodTypeRequired", "veg");
+        }
+      } else if (val === "halal") {
+        const current = hard.dietaryRestrictions || [];
+        if (!current.includes("halal")) {
+          store.updateConstraint("hard", "dietaryRestrictions", [...current, "halal"]);
         }
       } else if (val === "no_dairy") {
         const current = hard.excludedAllergens || [];
@@ -215,13 +254,15 @@ export function renderConstraintChips(container) {
         if (!current.includes("peanuts")) {
           store.updateConstraint("hard", "excludedAllergens", [...current, "peanuts", "tree_nuts"]);
         }
-      } else if (val === "under_15") {
-        store.updateConstraint("hard", "maxBudget", 15.0);
-      } else if (val === "under_20") {
-        store.updateConstraint("hard", "maxBudget", 20.0);
+      } else if (val === "under_150") {
+        store.updateConstraint("hard", "maxBudget", 150);
+      } else if (val === "under_300") {
+        store.updateConstraint("hard", "maxBudget", 300);
+      } else if (val === "under_500") {
+        store.updateConstraint("hard", "maxBudget", 500);
       } else if (val === "speed_25") {
         store.updateConstraint("soft", "targetDeliveryMaxMinutes", 25);
-      } else if (val === "high_protein" || val === "spicy") {
+      } else if (val === "biryani" || val === "paneer" || val === "spicy") {
         const current = soft.cravings || [];
         if (!current.includes(val)) {
           store.updateConstraint("soft", "cravings", [...current, val]);

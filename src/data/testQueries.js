@@ -1,113 +1,113 @@
 /**
- * Canonical test queries with expected constraints and ground truth verification.
- * Used for evaluation suite and interactive demo pills.
+ * Canonical test queries for Indian Food Discovery
+ * Tested in Indian Rupees (₹) across Pure Veg, Jain, Non-Veg, High Protein, and Regional Cravings.
  */
 
 export const TEST_QUERIES = [
   {
     id: "query-1",
-    label: "Healthy Vegan Lunch",
-    text: "Healthy vegan dinner under $18 ready in 25 mins",
-    category: "Diet & Speed",
+    label: "Pure Veg Paneer under ₹300",
+    text: "Pure veg paneer butter masala under ₹300 ready in 30 mins",
+    category: "Diet & Budget",
     expected: {
-      budgetMax: 18,
-      dietary: ["vegan"],
-      timeMaxMinutes: 25,
-      cravings: ["healthy"]
+      budgetMax: 300,
+      dietary: ["vegetarian"],
+      timeMaxMinutes: 30,
+      cravings: ["paneer"]
     },
     difficulty: "Medium",
-    description: "Combines strict dietary (vegan), hard budget ($18), speed limit (25m), and healthy preference."
+    description: "Evaluates strict pure veg gating, ₹300 budget cap, and paneer craving."
   },
   {
     id: "query-2",
-    label: "Gluten-Free & Spicy Soup",
-    text: "Spicy Thai comfort soup under $16 with no gluten",
-    category: "Allergen & Craving",
+    label: "Spicy Hyderabadi Biryani under ₹350",
+    text: "Spicy Hyderabadi chicken dum biryani under ₹350",
+    category: "Biryani & Spice",
     expected: {
-      budgetMax: 16,
-      dietary: ["gluten_free"],
-      cuisine: "Thai",
-      cravings: ["spicy", "comfort", "soup"]
+      budgetMax: 350,
+      dietary: ["halal"],
+      cuisine: "Biryani",
+      cravings: ["spicy", "biryani"]
     },
-    difficulty: "High",
-    description: "Tests negative allergen phrasing ('no gluten') with multiple subjective cravings."
+    difficulty: "Easy",
+    description: "Evaluates biryani cuisine matching, halal safety, and spicy craving under ₹350."
   },
   {
     id: "query-3",
-    label: "High-Protein Dairy-Free",
-    text: "High protein post-workout lunch under $22 with no dairy",
-    category: "Fitness & Diet",
+    label: "South Indian Breakfast under ₹150",
+    text: "Crispy South Indian dosa or idli under ₹150 fast delivery",
+    category: "Regional & Speed",
     expected: {
-      budgetMax: 22,
-      dietary: ["dairy_free"],
-      cravings: ["high_protein"]
+      budgetMax: 150,
+      dietary: ["vegetarian"],
+      timeMaxMinutes: 25,
+      cravings: ["dosa", "crispy"]
     },
     difficulty: "Medium",
-    description: "Tests fitness intent translation into macro weighting (>30g protein preferred)."
+    description: "Tests fast breakfast delivery (<25 mins) and tight budget under ₹150."
   },
   {
     id: "query-4",
-    label: "Late-Night Halal Burger",
-    text: "Late night halal burger under $15 ready fast",
-    category: "Religious & Operational",
+    label: "Jain Friendly Dinner under ₹250",
+    text: "Jain friendly khichdi or dinner under ₹250 with no onion no garlic",
+    category: "Religious & Dietary",
     expected: {
-      budgetMax: 15,
-      dietary: ["halal"],
-      timeMaxMinutes: 25,
-      cravings: ["burger", "comfort", "fast"]
+      budgetMax: 250,
+      dietary: ["jain"],
+      cravings: ["healthy"]
     },
-    difficulty: "Medium",
-    description: "Evaluates operational time tags and strict religious dietary gating."
+    difficulty: "High",
+    description: "Strict Jain filter (no onion, no garlic, pure sattvic) under ₹250."
   },
   {
     id: "query-5",
-    label: "Family Feast for 4",
-    text: "Family dinner for 4 people under $60 with no nuts",
-    category: "Group & Allergen",
+    label: "High Protein Lunch with No Dairy",
+    text: "High protein chicken lunch under ₹350 with no dairy",
+    category: "Fitness & Allergen",
     expected: {
-      budgetMax: 60,
-      groupSize: 4,
-      allergensExcluded: ["peanuts", "tree_nuts"]
+      budgetMax: 350,
+      allergensExcluded: ["dairy"],
+      cravings: ["high_protein"]
     },
     difficulty: "High",
-    description: "Checks group sharing portioning, total order budget scaling, and severe allergen exclusion."
+    description: "Fitness meal (>40g protein) while strictly excluding dairy/cream/butter/paneer."
   },
   {
     id: "query-6",
-    label: "Crispy Cheap Tacos",
-    text: "Crispy street tacos under $12 with quick delivery",
-    category: "Budget & Texture",
+    label: "Family Biryani Feast for 4 under ₹1000",
+    text: "Family feast biryani for 4 people under ₹1000",
+    category: "Group Sharing",
     expected: {
-      budgetMax: 12,
-      cuisine: "Mexican",
-      cravings: ["crispy", "tacos"]
+      budgetMax: 1000,
+      groupSize: 4,
+      cravings: ["family", "biryani"]
     },
-    difficulty: "Easy",
-    description: "Tests low budget cap gating with texture craving."
+    difficulty: "Medium",
+    description: "Group portion scaling and jumbo handi feast under ₹1000 total budget."
   },
   {
     id: "query-7",
-    label: "Strict Gluten-Free Pasta",
-    text: "Strict gluten-free Italian pasta under $25",
-    category: "Specialty Diet",
+    label: "Cheap Mumbai Street Chaat under ₹150",
+    text: "Cheap street food chaat or pav bhaji under ₹150",
+    category: "Street Food & Budget",
     expected: {
-      budgetMax: 25,
-      dietary: ["gluten_free"],
-      cuisine: "Italian"
+      budgetMax: 150,
+      cravings: ["chaat", "comfort"]
     },
-    difficulty: "Medium",
-    description: "Must only return pasta dishes that are certified gluten-free, filtering out regular wheat pasta."
+    difficulty: "Easy",
+    description: "Quick street snack under ₹150."
   },
   {
     id: "query-8",
-    label: "Ultra-Cheap Comfort",
-    text: "Cheap comfort food under $10",
-    category: "Extreme Budget",
+    label: "Strict Gluten-Free Healthy Bowl under ₹250",
+    text: "Strict gluten-free healthy lunch under ₹250",
+    category: "Health & Celiac",
     expected: {
-      budgetMax: 10,
-      cravings: ["comfort", "cheap"]
+      budgetMax: 250,
+      dietary: ["gluten_free"],
+      cravings: ["healthy"]
     },
     difficulty: "Medium",
-    description: "Tests tightest budget constraint against snack / starter portion sizes."
+    description: "Guarantees zero wheat/maida/gluten contamination in healthy meal."
   }
 ];

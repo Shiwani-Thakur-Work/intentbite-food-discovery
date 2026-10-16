@@ -1,7 +1,6 @@
 /**
- * Google Gemini API Client for Natural Language Constraint Extraction
- * Features dual-mode execution: live Gemini LLM parsing with automatic fallback
- * to deterministic local NLU parser.
+ * Google Gemini API Client for Indian Food Discovery
+ * Dual-mode: Live Gemini LLM parsing + Automatic fallback to local Indian NLU parser.
  */
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -26,16 +25,18 @@ export function setActiveApiKey(key) {
 }
 
 const SYSTEM_PROMPT = `
-You are an expert food discovery NLU parser. Your job is to extract search constraints from a user's natural language food request into structured JSON.
+You are an expert Indian food discovery NLU parser. Your job is to extract search constraints from a user's natural language food request in Indian contexts into structured JSON.
+Prices are in Indian Rupees (₹ / INR).
 
 Return ONLY a valid JSON object with this exact shape (no markdown backticks, no explanatory text):
 {
   "hard": {
-    "maxBudget": number or null,
+    "maxBudget": number or null (in Indian Rupees ₹),
     "budgetScope": "per_item" | "total" | "per_person",
     "groupSize": number,
     "dietaryRestrictions": string[],
-    "excludedAllergens": string[]
+    "excludedAllergens": string[],
+    "foodTypeRequired": "veg" | "non_veg" | null
   },
   "soft": {
     "cuisines": string[],
@@ -49,9 +50,10 @@ Return ONLY a valid JSON object with this exact shape (no markdown backticks, no
   "explanation": "concise 1-sentence summary of parsed constraints"
 }
 
-Allowed dietaryRestrictions values: ["vegan", "vegetarian", "gluten_free", "halal", "dairy_free", "nut_free", "keto"].
+Allowed dietaryRestrictions values: ["vegetarian", "vegan", "gluten_free", "halal", "jain", "dairy_free", "nut_free"].
 Allowed excludedAllergens values: ["peanuts", "tree_nuts", "dairy", "gluten", "eggs", "shellfish", "soy"].
-Allowed cravings values: ["spicy", "comfort", "high_protein", "crispy", "soup", "healthy", "bowl", "salad", "noodles", "tacos", "burger", "pizza", "sushi", "cheap", "late_night", "sweet"].
+Allowed cuisines values: ["North Indian", "South Indian", "Biryani & Mughlai", "Street Food & Chaat", "Healthy Indian", "Indo-Chinese", "South Indian Coastal"].
+Allowed cravings values: ["biryani", "paneer", "dosa", "spicy", "comfort", "high_protein", "crispy", "chaat", "healthy", "sweet", "cheap"].
 `;
 
 export async function extractConstraints(queryText) {
@@ -92,7 +94,8 @@ export async function extractConstraints(queryText) {
         budgetScope: parsed.hard?.budgetScope || "per_item",
         groupSize: parsed.hard?.groupSize || 1,
         dietaryRestrictions: Array.isArray(parsed.hard?.dietaryRestrictions) ? parsed.hard.dietaryRestrictions : [],
-        excludedAllergens: Array.isArray(parsed.hard?.excludedAllergens) ? parsed.hard.excludedAllergens : []
+        excludedAllergens: Array.isArray(parsed.hard?.excludedAllergens) ? parsed.hard.excludedAllergens : [],
+        foodTypeRequired: parsed.hard?.foodTypeRequired || null
       },
       soft: {
         cuisines: Array.isArray(parsed.soft?.cuisines) ? parsed.soft.cuisines : [],
@@ -107,9 +110,9 @@ export async function extractConstraints(queryText) {
       explanation: parsed.explanation || "Interpreted via Gemini LLM"
     };
   } catch (error) {
-    console.warn("Gemini API call failed or rate-limited. Falling back to local deterministic parser.", error);
+    console.warn("Gemini API call failed or rate-limited. Falling back to local Indian NLU parser.", error);
     const localResult = parseNaturalLanguageQuery(queryText);
-    localResult.parsedBy = "Local NLU Engine (Gemini Fallback)";
+    localResult.parsedBy = "Local Indian NLU Engine (Gemini Fallback)";
     return localResult;
   }
 }
