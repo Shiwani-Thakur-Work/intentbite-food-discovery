@@ -1,0 +1,98 @@
+# AI Feature Rebuild: Natural-Language Food Discovery
+
+## 1. Product context
+
+Many food discovery experiences begin with restaurant names, cuisines, or conventional filters. A user may instead have a specific combination of needs: a fixed budget, dietary preferences, group size, delivery constraints, and a particular craving.
+
+The proposed feature lets users express these needs in natural language and translates them into useful, explainable search results.
+
+## 2. Problem statement
+
+Users with multiple constraints may need to navigate several filters or repeatedly adjust their search to find suitable options.
+
+The product opportunity is to make complex search intent easier to express and ensure the resulting options actually satisfy the stated constraints.
+
+## 3. Target users
+
+Start with users who regularly order food and need to balance multiple constraints, such as budget, dietary preferences, and meal type.
+
+Do not assume that every food-ordering user experiences this problem equally.
+
+## 4. Core hypothesis
+
+If users can describe their requirements in one natural-language request and see results that clearly satisfy those requirements, they will find suitable options with less search effort.
+
+## 5. Proposed MVP
+
+- A search box for natural-language requests.
+- Extraction of budget, dietary preferences, cuisine, and other supported constraints.
+- A small, curated dataset of food or restaurant options.
+- Results ranked against explicit constraints.
+- A visible explanation of why each result matches.
+- A way to correct misunderstood requirements.
+- A fallback when no result satisfies every constraint.
+
+For the prototype, use a curated dataset rather than depending on expensive or unreliable live restaurant APIs.
+
+## 6. Product decisions
+
+- Which constraints are mandatory and which are preferences?
+- What happens when two constraints conflict?
+- Should the system ask a clarifying question or return partial matches?
+- How should users correct an incorrectly interpreted request?
+- How will the product distinguish verified data from generated descriptions?
+
+Hard constraints such as a maximum budget should not silently be violated just because a result appears otherwise relevant.
+
+## 7. Success metrics
+
+- Percentage of queries for which the system correctly interprets constraints.
+- Percentage of results that satisfy all mandatory constraints.
+- Time or number of interactions required to find a suitable option.
+- Percentage of users who accept a result or refine the search.
+- Rate of misunderstood constraints and empty-result failures.
+
+## 8. Validation plan
+
+First, observe how users currently search for meals under multiple constraints. Create representative test queries and manually define which results should qualify.
+
+Compare the conventional filtering workflow with the natural-language prototype. Measure constraint satisfaction and task completion instead of relying only on subjective impressions.
+
+## 9. Out of scope
+
+- Full food delivery and checkout.
+- Restaurant inventory integrations.
+- Nationwide restaurant coverage.
+- Personalized recommendations based on sensitive inferred attributes.
+- A complete replacement for an existing food-ordering platform.
+
+## 10. Portfolio outcome
+
+Present a focused before-and-after workflow, explain why this feature was selected, show how intent extraction and ranking work, and report where the new experience succeeds or fails against the baseline.
+
+
+
+- This idea is deliberately narrower than a full product. The goal is to identify one point of friction in an existing workflow and demonstrate how a thoughtful AI feature can improve it.
+For a first experiment, I would consider natural-language food discovery: finding meals based on budget, dietary preferences, and practical constraints. This is an illustrative direction from your original idea, not a validated user problem.
+
+- PM perspective: This is a good compact feature experiment. Keep it to a short, measurable case study rather than turning it into a sixth large application.
+
+
+
+- Your PM working checklist
+Use this checklist for each project before implementation begins.
+Project readiness
+0/10
+
+
+
+[ ] Define the target user and problem statement
+[ ] Conduct initial user research or problem validation
+[ ] Write the product hypothesis and assumptions
+[ ] Define MVP scope and explicit non-goals
+[ ] Select success metrics and how to measure them
+[ ] Create user flows and a low-fidelity prototype
+[ ] Define AI evaluation cases and failure handling
+[ ] Build and test the smallest useful version
+[ ] Review results and prioritize the next iteration
+[ ] Publish an honest PM case study
